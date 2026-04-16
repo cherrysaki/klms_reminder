@@ -1,0 +1,23 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "taskCache",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "submissionStatus", "order": "ASCENDING" },
+        { "fieldPath": "notifiedUrgent", "order": "ASCENDING" },
+        { "fieldPath": "dueAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "tokenStatus", "order": "ASCENDING" },
+        { "fieldPath": "settings.morningReminder", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

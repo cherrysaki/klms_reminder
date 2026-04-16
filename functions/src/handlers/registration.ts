@@ -6,7 +6,9 @@ import {pushText} from "../services/lineClient";
 import {encrypt} from "../utils/crypto";
 import {RegistrationToken} from "../types";
 
-const db = getFirestore();
+function db() {
+  return getFirestore();
+}
 
 function renderPage(title: string, body: string): string {
   return `<!DOCTYPE html>
@@ -94,7 +96,7 @@ export async function handleTokenRegistration(
   }
 
   if (req.method === "GET") {
-    const tokenDoc = await db
+    const tokenDoc = await db()
       .collection("registrationTokens")
       .doc(code)
       .get();
@@ -121,7 +123,7 @@ export async function handleTokenRegistration(
       <div class="steps">
         <p><strong>トークンの取得手順:</strong></p>
         <ol>
-          <li><a href="https://klms.keio.jp" target="_blank">KLMS</a> にログイン</li>
+          <li><a href="https://lms.keio.jp" target="_blank">KLMS</a> にログイン</li>
           <li>左メニュー「アカウント」→「設定」を開く</li>
           <li>「+ 新しいアクセストークンを生成する」をクリック</li>
           <li>用途名を入力（例: "Reminder Bot"）して「トークンを生成する」</li>
@@ -148,7 +150,7 @@ export async function handleTokenRegistration(
       return;
     }
 
-    const tokenDoc = await db
+    const tokenDoc = await db()
       .collection("registrationTokens")
       .doc(code)
       .get();
@@ -174,7 +176,7 @@ export async function handleTokenRegistration(
 
       const encrypted = encrypt(klmsToken.trim(), klmsEncryptionKey);
 
-      const userSnapshot = await db
+      const userSnapshot = await db()
         .collection("users")
         .where("lineUserId", "==", tokenData.lineUserId)
         .get();
@@ -186,6 +188,22 @@ export async function handleTokenRegistration(
           klmsUserId: canvasUser.id,
           tokenStatus: "valid",
           lastTokenVerifiedAt: Timestamp.now(),
+        });
+      } else {
+        await db().collection("users").add({
+          lineUserId: tokenData.lineUserId,
+          displayName: canvasUser.name,
+          klmsToken: encrypted.encrypted,
+          klmsTokenIv: encrypted.iv,
+          klmsUserId: canvasUser.id,
+          isActive: true,
+          registeredAt: Timestamp.now(),
+          lastTokenVerifiedAt: Timestamp.now(),
+          tokenStatus: "valid",
+          settings: {
+            morningReminder: true,
+            urgentReminder: true,
+          },
         });
       }
 

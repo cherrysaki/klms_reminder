@@ -13,7 +13,9 @@ import {
 } from "../utils/messageTemplates";
 import {User, TaskCache} from "../types";
 
-const db = getFirestore();
+function db() {
+  return getFirestore();
+}
 
 export async function handleEvent(
   event: webhook.Event,
@@ -56,7 +58,7 @@ async function handleFollow(
   const userId = event.source?.userId;
   if (!userId) return;
 
-  const userRef = db.collection("users").where("lineUserId", "==", userId);
+  const userRef = db().collection("users").where("lineUserId", "==", userId);
   const existing = await userRef.get();
 
   if (existing.empty) {
@@ -68,7 +70,7 @@ async function handleFollow(
       // Use default
     }
 
-    await db.collection("users").add({
+    await db().collection("users").add({
       lineUserId: userId,
       displayName,
       klmsToken: "",
@@ -97,7 +99,7 @@ async function handleUnfollow(event: webhook.UnfollowEvent): Promise<void> {
   const userId = event.source?.userId;
   if (!userId) return;
 
-  const userRef = db.collection("users").where("lineUserId", "==", userId);
+  const userRef = db().collection("users").where("lineUserId", "==", userId);
   const snapshot = await userRef.get();
   for (const doc of snapshot.docs) {
     await doc.ref.update({isActive: false});
@@ -114,13 +116,13 @@ async function handleJoin(
     : undefined;
   if (!groupId) return;
 
-  const groupRef = db
+  const groupRef = db()
     .collection("groups")
     .where("lineGroupId", "==", groupId);
   const existing = await groupRef.get();
 
   if (existing.empty) {
-    await db.collection("groups").add({
+    await db().collection("groups").add({
       lineGroupId: groupId,
       groupName: "",
       registeredBy: "",
@@ -151,7 +153,7 @@ async function handleLeave(event: webhook.LeaveEvent): Promise<void> {
     : undefined;
   if (!groupId) return;
 
-  const groupRef = db
+  const groupRef = db()
     .collection("groups")
     .where("lineGroupId", "==", groupId);
   const snapshot = await groupRef.get();
@@ -257,7 +259,7 @@ async function handleGroupCommand(
   channelAccessToken: string
 ): Promise<void> {
   if (command === "グループ通知on") {
-    const userSnapshot = await db
+    const userSnapshot = await db()
       .collection("users")
       .where("lineUserId", "==", userId)
       .get();
@@ -273,7 +275,7 @@ async function handleGroupCommand(
       return;
     }
 
-    const groupSnapshot = await db
+    const groupSnapshot = await db()
       .collection("groups")
       .where("lineGroupId", "==", groupId)
       .get();
@@ -288,7 +290,7 @@ async function handleGroupCommand(
       );
     }
   } else if (command === "グループ通知off") {
-    const groupSnapshot = await db
+    const groupSnapshot = await db()
       .collection("groups")
       .where("lineGroupId", "==", groupId)
       .get();
@@ -313,7 +315,7 @@ async function handleRegister(
 ): Promise<void> {
   const code = crypto.randomBytes(4).toString("hex");
 
-  await db.collection("registrationTokens").doc(code).set({
+  await db().collection("registrationTokens").doc(code).set({
     lineUserId: userId,
     createdAt: Timestamp.now(),
     expiresAt: Timestamp.fromMillis(Date.now() + 10 * 60 * 1000),
@@ -337,7 +339,7 @@ async function handleTasks(
   klmsEncKey: string,
   filter: "today" | "tomorrow" | "week" | null
 ): Promise<void> {
-  const userSnapshot = await db
+  const userSnapshot = await db()
     .collection("users")
     .where("lineUserId", "==", userId)
     .get();
@@ -448,7 +450,7 @@ async function handleNotificationToggle(
   channelAccessToken: string,
   enabled: boolean
 ): Promise<void> {
-  const userSnapshot = await db
+  const userSnapshot = await db()
     .collection("users")
     .where("lineUserId", "==", userId)
     .get();

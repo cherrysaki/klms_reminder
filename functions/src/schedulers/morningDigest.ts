@@ -6,13 +6,15 @@ import {decrypt} from "../utils/crypto";
 import {buildMorningDigest} from "../utils/messageTemplates";
 import {User, TaskCache} from "../types";
 
-const db = getFirestore();
+function db() {
+  return getFirestore();
+}
 
 export async function runMorningDigest(
   channelAccessToken: string,
   klmsEncryptionKey: string
 ): Promise<void> {
-  const usersSnapshot = await db
+  const usersSnapshot = await db()
     .collection("users")
     .where("isActive", "==", true)
     .where("tokenStatus", "==", "valid")
@@ -49,11 +51,11 @@ export async function runMorningDigest(
       }));
 
       // Update task cache
-      const batch = db.batch();
+      const batch = db().batch();
       for (const task of taskCacheData) {
         const docId =
           `${task.lineUserId}_${task.courseId}_${task.assignmentId}`;
-        batch.set(db.collection("taskCache").doc(docId), task, {merge: true});
+        batch.set(db().collection("taskCache").doc(docId), task, {merge: true});
       }
       await batch.commit();
 

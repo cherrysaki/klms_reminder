@@ -153,7 +153,7 @@ export function buildRegistrationMessage(url: string): string {
     url,
     "",
     "※ トークンの取得方法:",
-    "1. KLMS (klms.keio.jp) にログイン",
+    "1. KLMS (lms.keio.jp) にログイン",
     "2. アカウント → 設定 → アクセストークンを新規作成",
     "3. 生成されたトークンをコピーして上記リンクに貼り付け",
   ].join("\n");

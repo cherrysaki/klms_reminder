@@ -4,7 +4,9 @@ import {pushText} from "../services/lineClient";
 import {buildUrgentReminder, buildGroupUrgentReminder} from "../utils/messageTemplates";
 import {User, TaskCache, Group} from "../types";
 
-const db = getFirestore();
+function db() {
+  return getFirestore();
+}
 
 export async function runUrgentReminder(
   channelAccessToken: string
@@ -13,7 +15,7 @@ export async function runUrgentReminder(
   const in24Hours = now + 24 * 60 * 60 * 1000;
 
   // Query unsubmitted tasks due within 24 hours that haven't been notified
-  const tasksSnapshot = await db
+  const tasksSnapshot = await db()
     .collection("taskCache")
     .where("submissionStatus", "==", "unsubmitted")
     .where("notifiedUrgent", "==", false)
@@ -43,7 +45,7 @@ export async function runUrgentReminder(
 
   // Send individual notifications
   for (const [lineUserId, tasks] of userTasks) {
-    const userSnapshot = await db
+    const userSnapshot = await db()
       .collection("users")
       .where("lineUserId", "==", lineUserId)
       .get();
@@ -62,7 +64,7 @@ export async function runUrgentReminder(
   }
 
   // Send group notifications
-  const groupsSnapshot = await db
+  const groupsSnapshot = await db()
     .collection("groups")
     .where("isActive", "==", true)
     .where("settings.urgentReminder", "==", true)
@@ -78,7 +80,7 @@ export async function runUrgentReminder(
       const tasks = userTasks.get(memberId);
       if (!tasks || tasks.length === 0) continue;
 
-      const userSnapshot = await db
+      const userSnapshot = await db()
         .collection("users")
         .where("lineUserId", "==", memberId)
         .get();
@@ -102,7 +104,7 @@ export async function runUrgentReminder(
   }
 
   // Mark tasks as notified
-  const batch = db.batch();
+  const batch = db().batch();
   for (const doc of tasksSnapshot.docs) {
     batch.update(doc.ref, {notifiedUrgent: true});
   }
